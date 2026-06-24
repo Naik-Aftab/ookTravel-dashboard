@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Eye, UserCheck, Ban, CheckCircle, ArrowRightLeft } from 'lucide-react';
+import { Search, Eye, UserCheck, Ban, CheckCircle, ArrowRightLeft, Users } from 'lucide-react';
 import { agentsApi } from '@/api/agents.api';
 import { rmsApi }    from '@/api/rms.api';
 import DataTable     from '@/components/common/DataTable';
@@ -18,6 +18,7 @@ export default function AgentManagement() {
   const [modal, setModal]     = useState(null);
   const [selected, setSelected] = useState(null);
   const [assignRmId, setAssignRmId] = useState('');
+  const [bulkAssignRmId, setBulkAssignRmId] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['agents', search, status, page],
@@ -33,13 +34,26 @@ export default function AgentManagement() {
   const rmList     = rmsData?.data?.data || [];
 
   const mutOpts = { onSuccess: () => { qc.invalidateQueries(['agents']); setModal(null); } };
-  const assignMut   = useMutation({ mutationFn: ({ id, rm_id }) => agentsApi.assignRm(id, rm_id), ...mutOpts });
-  const transferMut = useMutation({ mutationFn: ({ id, rm_id }) => agentsApi.transfer(id, rm_id), ...mutOpts });
-  const activateMut = useMutation({ mutationFn: id => agentsApi.activate(id), ...mutOpts });
-  const suspendMut  = useMutation({ mutationFn: id => agentsApi.suspend(id),  ...mutOpts });
-  const kycMut      = useMutation({ mutationFn: ({ id, s }) => agentsApi.updateKyc(id, s), ...mutOpts });
+  const assignMut      = useMutation({ mutationFn: ({ id, rm_id }) => agentsApi.assignRm(id, rm_id), ...mutOpts });
+  const transferMut    = useMutation({ mutationFn: ({ id, rm_id }) => agentsApi.transfer(id, rm_id), ...mutOpts });
+  const activateMut    = useMutation({ mutationFn: id => agentsApi.activate(id), ...mutOpts });
+  const suspendMut     = useMutation({ mutationFn: id => agentsApi.suspend(id),  ...mutOpts });
+  const kycMut         = useMutation({ mutationFn: ({ id, s }) => agentsApi.updateKyc(id, s), ...mutOpts });
+  const bulkAssignMut  = useMutation({
+    mutationFn: (rm_id) => agentsApi.assignAllToRm(rm_id),
+    onSuccess: () => { qc.invalidateQueries(['agents']); setModal(null); setBulkAssignRmId(''); },
+  });
 
-  const open = (type, row) => { setSelected(row); setAssignRmId(''); setModal(type); };
+  const open = (type, row) => {
+    setSelected(row);
+    setAssignRmId(rmList.length === 1 ? String(rmList[0].id) : '');
+    setModal(type);
+  };
+
+  const openBulkAssign = () => {
+    setBulkAssignRmId(rmList.length === 1 ? String(rmList[0].id) : '');
+    setModal('bulkAssign');
+  };
 
   const columns = [
     {
@@ -102,6 +116,12 @@ export default function AgentManagement() {
           <option value="active">Active</option>
           <option value="suspended">Suspended</option>
         </select>
+        {rmList.length > 0 && (
+          <button onClick={openBulkAssign} className="btn-primary flex items-center gap-2 whitespace-nowrap">
+            <Users size={15} />
+            Assign All to RM
+          </button>
+        )}
       </div>
 
       <DataTable columns={columns} data={rows} loading={isLoading} pagination={{ ...pagination, page }} onPageChange={setPage} />
@@ -133,7 +153,7 @@ export default function AgentManagement() {
         footer={
           <>
             <button onClick={() => setModal(null)} className="btn-secondary">Cancel</button>
-            <button disabled={!assignRmId || assignMut.isPending}
+            <button disabled={!assignRmId || assignMut.isPending || transferMut.isPending}
               onClick={() => {
                 const fn = selected?.assigned_rm_id ? transferMut : assignMut;
                 fn.mutate({ id: selected?.id, rm_id: +assignRmId });
@@ -145,10 +165,42 @@ export default function AgentManagement() {
         }>
         <div>
           <label className="form-label">Select RM</label>
-          <select className="form-select" value={assignRmId} onChange={e => setAssignRmId(e.target.value)}>
+          <select className="form-select" value={assignRmId}
+            onChange={e => {
+              setAssignRmId(e.target.value);
+              if (rmList.length === 1 && e.target.value) {
+                const fn = selected?.assigned_rm_id ? transferMut : assignMut;
+                fn.mutate({ id: selected?.id, rm_id: +e.target.value });
+              }
+            }}>
             <option value="">-- Choose an RM --</option>
             {rmList.map(rm => <option key={rm.id} value={rm.id}>{rm.full_name} ({rm.agent_count} agents)</option>)}
           </select>
+          {rmList.length === 1 && (
+            <p className="text-xs text-indigo-500 mt-1.5">Agent will be assigned automatically on selection.</p>
+          )}
+        </div>
+      </Modal>
+
+      {/* Bulk Assign All Agents to RM Modal */}
+      <Modal isOpen={modal === 'bulkAssign'} onClose={() => { setModal(null); setBulkAssignRmId(''); }}
+        title="Assign All Agents to RM" size="sm">
+        <div>
+          <p className="text-sm text-gray-500 mb-3">
+            All agents (assigned and unassigned) will be moved to the selected RM.
+          </p>
+          <label className="form-label">Select RM</label>
+          <select className="form-select" value={bulkAssignRmId} disabled={bulkAssignMut.isPending}
+            onChange={e => {
+              setBulkAssignRmId(e.target.value);
+              if (e.target.value) bulkAssignMut.mutate(+e.target.value);
+            }}>
+            <option value="">-- Choose an RM --</option>
+            {rmList.map(rm => <option key={rm.id} value={rm.id}>{rm.full_name} ({rm.agent_count} agents)</option>)}
+          </select>
+          {bulkAssignMut.isPending && (
+            <p className="text-xs text-indigo-500 mt-2">Assigning all agents, please wait...</p>
+          )}
         </div>
       </Modal>
 

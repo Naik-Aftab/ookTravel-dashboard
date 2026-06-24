@@ -9,4 +9,5 @@ export const agentsApi = {
   activate:      (id)          => api.post(`/agents/${id}/activate`),
   suspend:       (id)          => api.post(`/agents/${id}/suspend`),
   updateKyc:     (id, status)  => api.patch(`/agents/${id}/kyc`, { kyc_status: status }),
+  assignAllToRm: (rm_id)       => api.post(`/agents/assign-all-rm`, { rm_id }),
 };

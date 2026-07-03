@@ -1,16 +1,17 @@
 import React from 'react';
 
 export default function LoadingSpinner({ size = 'md', fullPage = false }) {
-  const sz = { sm: 'h-4 w-4', md: 'h-8 w-8', lg: 'h-12 w-12' }[size] || 'h-8 w-8';
+  const sz = { sm: 'h-5 w-5', md: 'h-9 w-9', lg: 'h-14 w-14' }[size] || 'h-9 w-9';
 
   const spinner = (
-    <div className={`${sz} animate-spin rounded-full border-2 border-gray-200 border-t-blue-600`} />
+    <div className={`${sz} animate-spin rounded-full border-[3px] border-gray-200 border-t-blue-600`} />
   );
 
   if (fullPage) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
         {spinner}
+        <p className="text-sm text-gray-400 font-medium animate-pulse">Loading…</p>
       </div>
     );
   }

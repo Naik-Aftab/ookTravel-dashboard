@@ -19,8 +19,8 @@ export default function RMDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">My Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Here's an overview of your performance.</p>
+        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">My Dashboard</h1>
+        <p className="text-sm text-gray-500 mt-1">Here's an overview of your performance.</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -33,18 +33,20 @@ export default function RMDashboard() {
       </div>
 
       <div className="card p-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Quick Actions</h3>
+        <h3 className="text-sm font-bold text-gray-700 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {[
-            { label: 'View Pending Requests', href: '/rm/policy-requests', color: 'blue' },
-            { label: 'View My Agents',         href: '/rm/agents',          color: 'green' },
-            { label: 'Notifications',          href: '/rm/notifications',   color: 'indigo' },
-          ].map(({ label, href, color }) => (
-            <a key={href} href={href}
-              className={`block p-4 rounded-xl border-2 border-${color}-100 bg-${color}-50 hover:bg-${color}-100 transition-colors text-center`}>
-              <span className={`text-sm font-semibold text-${color}-700`}>{label}</span>
-            </a>
-          ))}
+          <a href="/rm/policy-requests"
+            className="block p-4 rounded-xl border-2 border-blue-100 bg-blue-50 hover:bg-blue-100 transition-colors text-center">
+            <span className="text-sm font-semibold text-blue-700">View Pending Requests</span>
+          </a>
+          <a href="/rm/agents"
+            className="block p-4 rounded-xl border-2 border-emerald-100 bg-emerald-50 hover:bg-emerald-100 transition-colors text-center">
+            <span className="text-sm font-semibold text-emerald-700">View My Agents</span>
+          </a>
+          <a href="/rm/notifications"
+            className="block p-4 rounded-xl border-2 border-indigo-100 bg-indigo-50 hover:bg-indigo-100 transition-colors text-center">
+            <span className="text-sm font-semibold text-indigo-700">Notifications</span>
+          </a>
         </div>
       </div>
     </div>

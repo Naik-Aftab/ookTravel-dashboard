@@ -43,12 +43,12 @@ export default function AdminDashboard() {
         <StatCard title="Total Revenue"   value={formatCurrency(stats.total_revenue)} icon={TrendingUp} color="green" />
         <StatCard title="Total Requests"  value={stats.total_requests}  icon={FileText}    color="blue"   />
         <StatCard title="Pending Requests"value={stats.pending_requests}icon={Clock}       color="yellow" />
-        <StatCard title="Claims Raised"   value={stats.claimed_policies}icon={AlertCircle} color="orange" />
-        <StatCard title="Rejected"        value={stats.rejected_requests}icon={XCircle}    color="red"    />
+        {/* <StatCard title="Claims Raised"   value={stats.claimed_policies}icon={AlertCircle} color="orange" /> */}
+        {/* <StatCard title="Rejected"        value={stats.rejected_requests}icon={XCircle}    color="red"    /> */}
         <StatCard title="Commission Payable" value={formatCurrency(stats.commission_payable)} icon={DollarSign} color="purple" />
         <StatCard title="Commission Paid"    value={formatCurrency(stats.commission_paid)}    icon={CheckCircle} color="green" />
-        <StatCard title="Pending Commission" value={formatCurrency(stats.commission_pending)} icon={Clock}       color="yellow" />
-        <StatCard title="Pending Agents"     value={stats.pending_agents}  icon={Users}   color="yellow" subtitle="awaiting approval" />
+        {/* <StatCard title="Pending Commission" value={formatCurrency(stats.commission_pending)} icon={Clock}       color="yellow" /> */}
+        {/* <StatCard title="Pending Agents"     value={stats.pending_agents}  icon={Users}   color="yellow" subtitle="awaiting approval" /> */}
       </div>
 
       {/* Charts */}

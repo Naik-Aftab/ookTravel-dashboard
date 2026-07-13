@@ -15,6 +15,7 @@ import AdminPolicyRequests  from '@/pages/admin/PolicyRequests';
 import AdminPolicies        from '@/pages/admin/Policies';
 import CommissionManagement from '@/pages/admin/CommissionManagement';
 import AuditLogs            from '@/pages/admin/AuditLogs';
+import AdminNotifications   from '@/pages/admin/Notifications';
 
 import RMDashboard      from '@/pages/rm/Dashboard';
 import MyAgents         from '@/pages/rm/MyAgents';
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="policies"        element={<AdminPolicies />} />
           <Route path="commissions"     element={<CommissionManagement />} />
           <Route path="audit-logs"      element={<AuditLogs />} />
+          <Route path="notifications"   element={<AdminNotifications />} />
         </Route>
 
         {/* RM Routes */}

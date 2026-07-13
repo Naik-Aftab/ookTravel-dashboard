@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useQuery } from '@tanstack/react-query';
 import {
   LayoutDashboard, Users, UserCheck, FileText, Shield,
   DollarSign, ClipboardList, Menu, X, Bell, LogOut, ChevronDown
@@ -8,6 +9,7 @@ import {
 import logo from '@/assets/logo.png';
 import { logout } from '@/store/authSlice';
 import { authApi } from '@/api/auth.api';
+import { notificationsApi } from '@/api/notifications.api';
 
 const navItems = [
   { to: '/admin',                 icon: LayoutDashboard, label: 'Dashboard',       end: true },
@@ -16,6 +18,7 @@ const navItems = [
   { to: '/admin/policy-requests', icon: FileText,        label: 'Policy Requests' },
   { to: '/admin/policies',        icon: Shield,          label: 'Policies' },
   { to: '/admin/commissions',     icon: DollarSign,      label: 'Commissions' },
+  { to: '/admin/notifications',   icon: Bell,            label: 'Notifications' },
   { to: '/admin/audit-logs',      icon: ClipboardList,   label: 'Audit Logs' },
 ];
 
@@ -25,6 +28,13 @@ export default function AdminLayout() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector(s => s.auth);
+
+  const { data: unreadData } = useQuery({
+    queryKey: ['notifications-unread-count'],
+    queryFn:  () => notificationsApi.unreadCount(),
+    refetchInterval: 30000,
+  });
+  const unreadCount = unreadData?.data?.data?.count || 0;
 
   const handleLogout = async () => {
     try { await authApi.logout(); } catch {}
@@ -121,9 +131,14 @@ export default function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-1.5">
-            <button className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">
+            <button onClick={() => navigate('/admin/notifications')}
+              className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">
               <Bell size={18} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold leading-none text-white bg-red-500 rounded-full ring-2 ring-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </button>
             <div className="relative">
               <button onClick={() => setUserMenuOpen(!userMenuOpen)}

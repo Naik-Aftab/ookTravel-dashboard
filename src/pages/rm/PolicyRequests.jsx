@@ -13,7 +13,7 @@ import { formatDate, formatCurrency, getStatusColor } from '@/utils/helpers';
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const EXCLUDED_KEYS = new Set([
-  'travellers', 'proposalResponse', 'destination',
+  'travellers', 'proposalResponse', 'destination', 'destinationQuery',
   'bulk_file', 'bulk_file_path',
 ]);
 
@@ -168,6 +168,7 @@ export default function RMPolicyRequests() {
     const lines = [
       `Request #: ${req.request_number}`,
       `Type: ${req.plan_type}`,
+      `Destination: ${req.destination || '—'}`,
       `Travel Date: ${formatDate(req.travel_date)}`,
       `Return Date: ${formatDate(req.return_date)}`,
       `No. of Days: ${req.no_of_days || '—'}`,
@@ -193,6 +194,7 @@ export default function RMPolicyRequests() {
       render: v => <span className="font-mono text-xs font-semibold">{v}</span>,
     },
     { key: 'traveler_name', label: 'Traveler' },
+    { key: 'destination',   label: 'Destination', render: v => v || <span className="text-gray-300 text-xs italic">—</span> },
     {
       key: 'plan_type', label: 'Type',
       render: v => {
@@ -301,6 +303,7 @@ export default function RMPolicyRequests() {
               <div className="grid grid-cols-2 gap-3 bg-gray-50 rounded-lg p-3">
                 {[
                   ['Request #',   req.request_number],
+                  ['Destination', req.destination],
                   ['Status',      req.status],
                   ['No. of Days', req.no_of_days],
                   ['Premium',     formatCurrency(req.payment_amount)],

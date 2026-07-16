@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Eye, UserCheck, Ban, CheckCircle, ArrowRightLeft, Users } from 'lucide-react';
+import { Search, Eye, UserCheck, Ban, CheckCircle, ArrowRightLeft, Users, FileText, UserRound } from 'lucide-react';
 import { agentsApi } from '@/api/agents.api';
 import { rmsApi }    from '@/api/rms.api';
 import DataTable     from '@/components/common/DataTable';
@@ -9,6 +9,36 @@ import Modal         from '@/components/common/Modal';
 import ConfirmModal  from '@/components/common/ConfirmModal';
 import PageHeader    from '@/components/common/PageHeader';
 import { formatDate, getStatusColor } from '@/utils/helpers';
+
+const DOCUMENT_FIELDS = [
+  ['bank_document',   'Bank Passbook / Cancelled Cheque'],
+  ['aadhar_document',  'Aadhar Card'],
+  ['pan_document',     'PAN Card'],
+];
+
+function AgentAvatar({ src, size = 36 }) {
+  const style = { width: size, height: size };
+  if (src) {
+    return (
+      <a href={src} target="_blank" rel="noreferrer" title="View full photo">
+        <img
+          src={src}
+          alt=""
+          style={style}
+          className="rounded-full object-cover border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+        />
+      </a>
+    );
+  }
+  return (
+    <div
+      style={style}
+      className="flex items-center justify-center rounded-full bg-gray-100 border border-gray-200 text-gray-400"
+    >
+      <UserRound size={size * 0.55} />
+    </div>
+  );
+}
 
 export default function AgentManagement() {
   const qc = useQueryClient();
@@ -29,9 +59,18 @@ export default function AgentManagement() {
     queryFn:  () => rmsApi.getAll({ status: 'active', limit: 100 }),
   });
 
+  // The list row doesn't carry document columns — fetch the full agent record when the view
+  // modal opens so bank/KYC documents (and anything else not on the list SELECT) are available.
+  const { data: detailRes, isLoading: detailLoading } = useQuery({
+    queryKey: ['agent-detail', selected?.id],
+    queryFn:  () => agentsApi.getOne(selected.id),
+    enabled:  modal === 'view' && !!selected?.id,
+  });
+
   const rows       = data?.data?.data  || [];
   const pagination = data?.data?.pagination;
   const rmList     = rmsData?.data?.data || [];
+  const viewedAgent = modal === 'view' ? (detailRes?.data?.data ?? selected) : selected;
 
   const mutOpts = { onSuccess: () => { qc.invalidateQueries(['agents']); setModal(null); } };
   const assignMut      = useMutation({ mutationFn: ({ id, rm_id }) => agentsApi.assignRm(id, rm_id), ...mutOpts });
@@ -59,9 +98,12 @@ export default function AgentManagement() {
     {
       key: 'full_name', label: 'Agent',
       render: (v, r) => (
-        <div>
-          <p className="font-medium text-gray-900">{v}</p>
-          <p className="text-xs text-gray-400">{r.agency_name || r.email}</p>
+        <div className="flex items-center gap-3">
+          <AgentAvatar src={r.profile_photo} />
+          <div>
+            <p className="font-medium text-gray-900">{v}</p>
+            <p className="text-xs text-gray-400">{r.email}</p>
+          </div>
         </div>
       ),
     },
@@ -128,24 +170,62 @@ export default function AgentManagement() {
 
       {/* View Agent Modal */}
       <Modal isOpen={modal === 'view'} onClose={() => setModal(null)} title="Agent Profile" size="lg">
-        {selected && (
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {[
-              ['Full Name', selected.full_name], ['Email', selected.email],
-              ['Mobile', selected.mobile], ['Agency', selected.agency_name],
-              ['PAN', selected.pan], ['GST', selected.gst],
-              ['Bank Name', selected.bank_name], ['Account No.', selected.bank_account],
-              ['IFSC', selected.bank_ifsc], ['KYC Status', selected.kyc_status],
-              ['Status', selected.status], ['Assigned RM', selected.rm_name],
-              ['Joined', formatDate(selected.created_at)],
-            ].map(([label, val]) => (
-              <div key={label}>
-                <p className="text-gray-400 text-xs">{label}</p>
-                <p className="font-medium text-gray-800">{val || '—'}</p>
+        {detailLoading ? (
+          <div className="py-10 text-center text-gray-400 text-sm">Loading…</div>
+        ) : viewedAgent ? (
+          <div className="space-y-5">
+            <div className="flex items-center gap-4">
+              <AgentAvatar src={viewedAgent.profile_photo} size={64} />
+              <div>
+                <p className="text-base font-semibold text-gray-900">{viewedAgent.full_name}</p>
+                <p className="text-sm text-gray-400">{viewedAgent.email}</p>
               </div>
-            ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              {[
+                ['Full Name', viewedAgent.full_name], ['Email', viewedAgent.email],
+                ['Mobile', viewedAgent.mobile],
+                ['PAN', viewedAgent.pan],
+                ['Bank Name', viewedAgent.bank_name], ['Account No.', viewedAgent.bank_account],
+                ['IFSC', viewedAgent.bank_ifsc], ['Aadhar Number', viewedAgent.aadhar_number],
+                ['KYC Status', viewedAgent.kyc_status],
+                ['Status', viewedAgent.status], ['Assigned RM', viewedAgent.rm_name],
+                ['Joined', formatDate(viewedAgent.created_at)],
+              ].map(([label, val]) => (
+                <div key={label}>
+                  <p className="text-gray-400 text-xs">{label}</p>
+                  <p className="font-medium text-gray-800">{val || '—'}</p>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                Bank / KYC Documents
+              </p>
+              <div className="grid grid-cols-3 gap-3 bg-gray-50 rounded-lg p-3">
+                {DOCUMENT_FIELDS.map(([field, label]) => (
+                  <div key={field}>
+                    <p className="text-gray-400 text-xs mb-1">{label}</p>
+                    {viewedAgent[field] ? (
+                      <a
+                        href={viewedAgent[field]}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-blue-600 hover:underline text-sm font-medium"
+                      >
+                        <FileText size={13} /> View
+                      </a>
+                    ) : (
+                      <span className="text-gray-300 text-xs italic">Not uploaded</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        )}
+        ) : null}
       </Modal>
 
       {/* Assign / Transfer RM Modal */}

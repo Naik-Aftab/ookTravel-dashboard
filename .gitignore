@@ -7,6 +7,10 @@ node_modules/
 # Build output
 dist/
 
+# Server config
+.htaccess
+.htaccess.production
+
 # OS
 .DS_Store
 Thumbs.db

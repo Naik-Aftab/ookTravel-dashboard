@@ -7,6 +7,7 @@ import Badge       from '@/components/common/Badge';
 import Modal       from '@/components/common/Modal';
 import PageHeader  from '@/components/common/PageHeader';
 import { formatDate, formatCurrency, getStatusColor } from '@/utils/helpers';
+import { assetUrl } from '@/utils/axios';
 
 export default function AdminPolicies() {
   const [search, setSearch] = useState('');
@@ -40,7 +41,7 @@ export default function AdminPolicies() {
             <Eye size={15} />
           </button>
           {row.policy_pdf && (
-            <a href={row.policy_pdf} target="_blank" rel="noreferrer"
+            <a href={assetUrl(row.policy_pdf)} target="_blank" rel="noreferrer"
               className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Download PDF">
               <Download size={15} />
             </a>
@@ -87,7 +88,7 @@ export default function AdminPolicies() {
             ))}
             {selected.policy_pdf && (
               <div className="col-span-2">
-                <a href={selected.policy_pdf} target="_blank" rel="noreferrer"
+                <a href={assetUrl(selected.policy_pdf)} target="_blank" rel="noreferrer"
                   className="btn-primary inline-flex items-center gap-2">
                   <Download size={14} /> Download Policy PDF
                 </a>

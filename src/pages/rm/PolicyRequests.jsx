@@ -9,6 +9,7 @@ import Badge      from '@/components/common/Badge';
 import Modal      from '@/components/common/Modal';
 import PageHeader from '@/components/common/PageHeader';
 import { formatDate, formatCurrency, getStatusColor } from '@/utils/helpers';
+import { assetUrl } from '@/utils/axios';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -46,7 +47,7 @@ function parseTravDetails(details) {
 
 function getBulkFileUrl(details) {
   const d = parseTravDetails(details);
-  return d?.bulk_file ? `/uploads/bulk/${d.bulk_file}` : null;
+  return d?.bulk_file ? assetUrl(`/uploads/bulk/${d.bulk_file}`) : null;
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -344,7 +345,7 @@ export default function RMPolicyRequests() {
             {req.payment_screenshot && (
               <div>
                 <p className="text-xs text-gray-400 mb-1">Payment Screenshot</p>
-                <a href={req.payment_screenshot} target="_blank" rel="noreferrer"
+                <a href={assetUrl(req.payment_screenshot)} target="_blank" rel="noreferrer"
                   className="text-blue-600 hover:underline text-sm">View Screenshot ↗</a>
               </div>
             )}

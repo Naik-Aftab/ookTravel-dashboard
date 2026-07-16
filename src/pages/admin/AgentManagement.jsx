@@ -9,6 +9,7 @@ import Modal         from '@/components/common/Modal';
 import ConfirmModal  from '@/components/common/ConfirmModal';
 import PageHeader    from '@/components/common/PageHeader';
 import { formatDate, getStatusColor } from '@/utils/helpers';
+import { assetUrl } from '@/utils/axios';
 
 const DOCUMENT_FIELDS = [
   ['bank_document',   'Bank Passbook / Cancelled Cheque'],
@@ -16,8 +17,9 @@ const DOCUMENT_FIELDS = [
   ['pan_document',     'PAN Card'],
 ];
 
-function AgentAvatar({ src, size = 36 }) {
+function AgentAvatar({ src: rawSrc, size = 36 }) {
   const style = { width: size, height: size };
+  const src = assetUrl(rawSrc);
   if (src) {
     return (
       <a href={src} target="_blank" rel="noreferrer" title="View full photo">
@@ -210,7 +212,7 @@ export default function AgentManagement() {
                     <p className="text-gray-400 text-xs mb-1">{label}</p>
                     {viewedAgent[field] ? (
                       <a
-                        href={viewedAgent[field]}
+                        href={assetUrl(viewedAgent[field])}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-1 text-blue-600 hover:underline text-sm font-medium"
